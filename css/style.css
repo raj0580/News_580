@@ -42,7 +42,7 @@ img { max-width: 100%; height: auto; display: block; }
     background-color: var(--card-bg);
     padding: 1rem 0;
     border-bottom: 1px solid var(--border-color);
-    position: sticky; top: 0; z-index: 100;
+    /* The "position: sticky" properties have been removed so the header scrolls away */
     box-shadow: var(--shadow);
 }
 .header-container { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
@@ -174,4 +174,4 @@ img { max-width: 100%; height: auto; display: block; }
     #search-bar { width: 100%; }
     #news-article-content { padding: 1.5rem; }
     .article-title { font-size: 1.8rem; }
-               }
+    }
