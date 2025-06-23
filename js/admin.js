@@ -53,7 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
             newsData = JSON.parse(storedData);
         } else {
             try {
-                // CORRECTED PATH: Relative to the root HTML file
                 const response = await fetch(`data/newsData.json?v=${new Date().getTime()}`); 
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 newsData = await response.json();
@@ -93,12 +92,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const handleFormSubmit = (e) => {
         e.preventDefault();
         const postId = postIdInput.value;
+        const rawContent = contentInput.value;
+        let finalContent;
+
+        // NEW: Smart content formatter
+        // This checks if you've already written HTML. If not, it converts your line breaks into paragraphs.
+        const isHtml = /<[a-z][\s\S]*>/i.test(rawContent); // A simple check to see if HTML tags exist
+        if (isHtml) {
+            // If you wrote your own HTML, we trust you and use it directly.
+            finalContent = rawContent;
+        } else {
+            // If you wrote plain text, we format it for you.
+            finalContent = rawContent
+                .split('\n') // Split the text by each line break
+                .filter(line => line.trim() !== '') // Remove empty lines
+                .map(line => `<p>${line.trim()}</p>`) // Wrap each non-empty line in <p> tags
+                .join(''); // Join them back into a single string of HTML
+        }
+        
         const post = {
             id: postId ? parseInt(postId) : Date.now(),
             title: titleInput.value,
-            // IMPROVED: Strip HTML tags for a cleaner summary
-            summary: contentInput.value.replace(/<[^>]+>/g, '').substring(0, 150) + '...',
-            content: contentInput.value,
+            summary: rawContent.replace(/<[^>]+>/g, '').substring(0, 150) + '...', // Summary is from the raw text
+            content: finalContent, // The content is the NEW, formatted HTML
             thumbnail: thumbnailInput.value,
             tags: tagsInput.value.split(',').map(tag => tag.trim()).filter(Boolean),
             date: new Date().toISOString().split('T')[0]
@@ -131,6 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
             titleInput.value = postToEdit.title;
             thumbnailInput.value = postToEdit.thumbnail;
             tagsInput.value = postToEdit.tags.join(', ');
+            // IMPORTANT: When editing, we show the raw HTML to preserve formatting like lists and headings
             contentInput.value = postToEdit.content;
             formTitle.textContent = 'Edit Post';
             submitButton.textContent = 'Update Post';
